@@ -45,6 +45,21 @@ function App(): React.ReactElement {
         setTodos((prev) => prev.filter((todo) => todo.id !== id));
     }
 
+    function handleUpdateTodo(id: string) {
+        if (editText.trim() === "") return;
+
+        setTodos((prev) =>
+            prev.map((todo) =>
+                todo.id === id
+                    ? { ...todo, text: editText }
+                    : todo
+            )
+        );
+
+        setEditingId(null);
+        setEditText("");
+    }
+
     return (
         <>
             <input
@@ -62,23 +77,55 @@ function App(): React.ReactElement {
 
             {todos.map((todo) => (
                 <div key={todo.id}>
-                    <p
-                        onClick={() => handleToggleTodo(todo.id)}
-                        style={{
-                            textDecoration: todo.completed ? "line-through" : "none",
-                            cursor: "pointer",
-                        }}
-                    >
-                        {todo.text}
-                    </p>
+                    {editingId === todo.id ? (
+                        <>
+                            <input
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                            />
+                            <button onClick={() => handleUpdateTodo(todo.id)}>
+                                Save
+                            </button>
+                            <button onClick={() => setEditingId(null)}>
+                                Cancel
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <p
+                                onClick={() => handleToggleTodo(todo.id)}
+                                style={{
+                                    textDecoration: todo.completed
+                                        ? "line-through"
+                                        : "none",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                {todo.text}
+                            </p>
 
-                    <p>{todo.deadline.toLocaleString()}</p>
+                            <p>{todo.deadline.toLocaleString()}</p>
 
-                    <p>{todo.completed ? "Completed" : "Pending"}</p>
+                            <p>
+                                {todo.completed ? "Completed" : "Pending"}
+                            </p>
 
-                    <button onClick={() => handleDeleteTodo(todo.id)}>
-                        Delete
-                    </button>
+                            <button
+                                onClick={() => {
+                                    setEditingId(todo.id);
+                                    setEditText(todo.text);
+                                }}
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                onClick={() => handleDeleteTodo(todo.id)}
+                            >
+                                Delete
+                            </button>
+                        </>
+                    )}
                 </div>
             ))}
         </>

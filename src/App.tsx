@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import type { Todo } from "./types/Todo";
+import TodoInput from "./components/TodoInput";
+import TodoList from "./components/TodoList";
+import Toast from "./components/Toast";
 
 function App(): React.ReactElement {
     const [todos, setTodos] = useState<Todo[]>([]);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [editText, setEditText] = useState<string>("");
+    const [editText, setEditText] = useState("");
     const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     const textRef = useRef<HTMLInputElement | null>(null);
@@ -18,14 +21,15 @@ function App(): React.ReactElement {
 
         if (text.trim() === "" || !deadlineValue) return;
 
-        const newTodo: Todo = {
-            id: Date.now().toString(),
-            text,
-            completed: false,
-            deadline: new Date(deadlineValue),
-        };
-
-        setTodos((prev) => [...prev, newTodo]);
+        setTodos((prev) => [
+            ...prev,
+            {
+                id: Date.now().toString(),
+                text,
+                completed: false,
+                deadline: new Date(deadlineValue),
+            },
+        ]);
 
         textRef.current.value = "";
         deadlineRef.current.value = "";
@@ -33,25 +37,22 @@ function App(): React.ReactElement {
 
     function handleToggleTodo(id: string) {
         setTodos((prev) =>
-            prev.map((todo) =>
-                todo.id === id
-                    ? { ...todo, completed: !todo.completed }
-                    : todo
+            prev.map((t) =>
+                t.id === id ? { ...t, completed: !t.completed } : t
             )
         );
     }
 
     function handleDeleteTodo(id: string) {
-        setTodos((prev) => prev.filter((todo) => todo.id !== id));
+        setTodos((prev) => prev.filter((t) => t.id !== id));
     }
 
     function handleUpdateTodo(id: string) {
         if (editText.trim() === "") return;
+
         setTodos((prev) =>
-            prev.map((todo) =>
-                todo.id === id
-                    ? { ...todo, text: editText }
-                    : todo
+            prev.map((t) =>
+                t.id === id ? { ...t, text: editText } : t
             )
         );
 
@@ -59,100 +60,46 @@ function App(): React.ReactElement {
         setEditText("");
     }
 
-
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date();
-
             const overdue = todos.find(
-                (todo) =>
-                    !todo.completed && todo.deadline < now
+                (t) => !t.completed && t.deadline < now
             );
 
             if (overdue) {
                 setToastMessage(`Task "${overdue.text}" is overdue!`);
             }
         }, 5000);
+
         return () => clearInterval(interval);
     }, [todos]);
 
     return (
         <>
             {toastMessage && (
-                <div style={{ background: "red", color: "white", padding: "10px" }}>
-                    <p>{toastMessage}</p>
-                    <button onClick={() => setToastMessage(null)}>
-                        Dismiss
-                    </button>
-                </div>
+                <Toast
+                    message={toastMessage}
+                    onClose={() => setToastMessage(null)}
+                />
             )}
 
-            <input
-                type="text"
-                placeholder="Add a new task..."
-                ref={textRef}
+            <TodoInput
+                textRef={textRef}
+                deadlineRef={deadlineRef}
+                onAdd={handleAddTodo}
             />
 
-            <input
-                type="datetime-local"
-                ref={deadlineRef}
+            <TodoList
+                todos={todos}
+                editingId={editingId}
+                editText={editText}
+                setEditText={setEditText}
+                setEditingId={setEditingId}
+                onToggle={handleToggleTodo}
+                onDelete={handleDeleteTodo}
+                onUpdate={handleUpdateTodo}
             />
-
-            <button onClick={handleAddTodo}>Add</button>
-
-            {todos.map((todo) => (
-                <div key={todo.id}>
-                    {editingId === todo.id ? (
-                        <>
-                            <input
-                                value={editText}
-                                onChange={(e) => setEditText(e.target.value)}
-                            />
-                            <button onClick={() => handleUpdateTodo(todo.id)}>
-                                Save
-                            </button>
-                            <button onClick={() => setEditingId(null)}>
-                                Cancel
-                            </button>
-                        </>
-                    ) : (
-                        <>
-                            <p
-                                onClick={() => handleToggleTodo(todo.id)}
-                                style={{
-                                    textDecoration: todo.completed
-                                        ? "line-through"
-                                        : "none",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                {todo.text}
-                            </p>
-
-                            <p>{todo.deadline.toLocaleString()}</p>
-
-                            <p>
-                                {todo.completed ? "Completed" : "Pending"}
-                            </p>
-
-                            <button
-                                onClick={() => {
-                                    setEditingId(todo.id);
-                                    setEditText(todo.text);
-                                }}
-                            >
-                                Edit
-                            </button>
-
-                            <button
-                                onClick={() => handleDeleteTodo(todo.id)}
-                            >
-                                Delete
-                            </button>
-                        </>
-                    )}
-                </div>
-            ))}
         </>
     );
 }

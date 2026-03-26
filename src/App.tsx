@@ -15,12 +15,9 @@ function App(): React.ReactElement {
 
     function handleAddTodo() {
         if (!textRef.current || !deadlineRef.current) return;
-
         const text = textRef.current.value;
         const deadlineValue = deadlineRef.current.value;
-
         if (text.trim() === "" || !deadlineValue) return;
-
         setTodos((prev) => [
             ...prev,
             {
@@ -30,7 +27,6 @@ function App(): React.ReactElement {
                 deadline: new Date(deadlineValue),
             },
         ]);
-
         textRef.current.value = "";
         deadlineRef.current.value = "";
     }
@@ -49,13 +45,11 @@ function App(): React.ReactElement {
 
     function handleUpdateTodo(id: string) {
         if (editText.trim() === "") return;
-
         setTodos((prev) =>
             prev.map((t) =>
                 t.id === id ? { ...t, text: editText } : t
             )
         );
-
         setEditingId(null);
         setEditText("");
     }
@@ -66,40 +60,20 @@ function App(): React.ReactElement {
             const overdue = todos.find(
                 (t) => !t.completed && t.deadline < now
             );
-
             if (overdue) {
                 setToastMessage(`Task "${overdue.text}" is overdue!`);
             }
         }, 5000);
-
         return () => clearInterval(interval);
     }, [todos]);
 
     return (
         <>
             {toastMessage && (
-                <Toast
-                    message={toastMessage}
-                    onClose={() => setToastMessage(null)}
-                />
+                <Toast message = { toastMessage }onClose = { () => setToastMessage(null) }/>
             )}
-
-            <TodoInput
-                textRef={textRef}
-                deadlineRef={deadlineRef}
-                onAdd={handleAddTodo}
-            />
-
-            <TodoList
-                todos={todos}
-                editingId={editingId}
-                editText={editText}
-                setEditText={setEditText}
-                setEditingId={setEditingId}
-                onToggle={handleToggleTodo}
-                onDelete={handleDeleteTodo}
-                onUpdate={handleUpdateTodo}
-            />
+            <TodoInput textRef={textRef} deadlineRef={deadlineRef} onAdd={handleAddTodo} />
+            <TodoList todos={todos} editingId={editingId} editText={editText} setEditText={setEditText} setEditingId={setEditingId} onToggle={handleToggleTodo} onDelete={handleDeleteTodo} onUpdate={handleUpdateTodo} />
         </>
     );
 }

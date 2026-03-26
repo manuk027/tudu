@@ -15,9 +15,7 @@ type Props = {
 function TodoList(props: Props): React.ReactElement {
     return (
         <div className="space-y-4">
-            {props.todos.map((todo) => (
-                <TodoItem key={todo.id} todo={todo} {...props} />
-            ))}
+            {props.todos.map((todo) => (<TodoItem key={todo.id} todo={todo} {...props} />))}
         </div>
     );
 }

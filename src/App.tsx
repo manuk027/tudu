@@ -31,6 +31,20 @@ function App(): React.ReactElement {
         deadlineRef.current.value = "";
     }
 
+    function handleToggleTodo(id: string) {
+        setTodos((prev) =>
+            prev.map((todo) =>
+                todo.id === id
+                    ? { ...todo, completed: !todo.completed }
+                    : todo
+            )
+        );
+    }
+
+    function handleDeleteTodo(id: string) {
+        setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    }
+
     return (
         <>
             <input
@@ -48,8 +62,23 @@ function App(): React.ReactElement {
 
             {todos.map((todo) => (
                 <div key={todo.id}>
-                    <p>{todo.text}</p>
+                    <p
+                        onClick={() => handleToggleTodo(todo.id)}
+                        style={{
+                            textDecoration: todo.completed ? "line-through" : "none",
+                            cursor: "pointer",
+                        }}
+                    >
+                        {todo.text}
+                    </p>
+
                     <p>{todo.deadline.toLocaleString()}</p>
+
+                    <p>{todo.completed ? "Completed" : "Pending"}</p>
+
+                    <button onClick={() => handleDeleteTodo(todo.id)}>
+                        Delete
+                    </button>
                 </div>
             ))}
         </>

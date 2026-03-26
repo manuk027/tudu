@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Todo } from "./types/Todo";
 
 function App(): React.ReactElement {
@@ -47,7 +47,6 @@ function App(): React.ReactElement {
 
     function handleUpdateTodo(id: string) {
         if (editText.trim() === "") return;
-
         setTodos((prev) =>
             prev.map((todo) =>
                 todo.id === id
@@ -60,8 +59,34 @@ function App(): React.ReactElement {
         setEditText("");
     }
 
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+
+            const overdue = todos.find(
+                (todo) =>
+                    !todo.completed && todo.deadline < now
+            );
+
+            if (overdue) {
+                setToastMessage(`Task "${overdue.text}" is overdue!`);
+            }
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [todos]);
+
     return (
         <>
+            {toastMessage && (
+                <div style={{ background: "red", color: "white", padding: "10px" }}>
+                    <p>{toastMessage}</p>
+                    <button onClick={() => setToastMessage(null)}>
+                        Dismiss
+                    </button>
+                </div>
+            )}
+
             <input
                 type="text"
                 placeholder="Add a new task..."
